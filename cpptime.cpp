@@ -220,9 +220,9 @@ timer_id add(const timestamp &when, handler_t &&handler, const duration &period)
 		events.resize(id + 1);
 	}
 	events.insert(events.begin() + id, std::move(e));
-	time_events.push(Time_event{e.start, e.id});
+	time_events.push(Time_event{e.start, id});
 	cond.notify_all();
-	return e.id;
+	return id;
 }
 
 bool remove(timer_id id)
