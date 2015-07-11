@@ -121,3 +121,17 @@ TEST_CASE("Test delete timer in callback")
 
 	CppTime::stop();
 }
+
+TEST_CASE("Test two identical timeouts")
+{
+	int i = 0;
+	int j = 0;
+	CppTime::start();
+	CppTime::timestamp t = CppTime::clock::now() + std::chrono::milliseconds(40);
+	CppTime::add(t, [&](CppTime::timer_id) { i = 42; });
+	CppTime::add(t, [&](CppTime::timer_id) { j = 43; });
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	REQUIRE(i == 42);
+	REQUIRE(j == 43);
+	CppTime::stop();
+}
