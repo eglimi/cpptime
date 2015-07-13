@@ -189,6 +189,9 @@ void stop()
 	while(!time_events.empty()) {
 		time_events.pop();
 	}
+	while(!free_ids.empty()) {
+		free_ids.pop();
+	}
 	cond.notify_all();
 	lock.unlock();
 	worker.join();
