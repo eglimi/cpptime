@@ -46,13 +46,8 @@ namespace
 {
 using scoped_m = std::unique_lock<std::mutex>;
 
-// Prototypes
-CppTime::timer_id next_id();
-
 // Use to terminate the timer thread.
 bool done = false;
-// The index variable used to construct the timer_id.
-uint64_t cur_id = 0;
 
 // Locking & Co
 std::mutex m;
@@ -120,18 +115,6 @@ std::priority_queue<Time_event> time_events;
 
 // A list of ids to be re-used. If possible, ids are used from this pool.
 std::stack<CppTime::timer_id> free_ids;
-
-// Returns the next free id. First, we check the free ids before creating a new
-// one.
-CppTime::timer_id next_id()
-{
-	if(free_ids.empty()) {
-		return cur_id++;
-	}
-	CppTime::timer_id id = free_ids.top();
-	free_ids.pop();
-	return id;
-}
 
 // The thread main entry points. This is an endless loop until the `done` flag
 // is set to false.
@@ -214,13 +197,20 @@ void stop()
 timer_id add(const timestamp &when, handler_t &&handler, const duration &period)
 {
 	scoped_m lock(m);
-	timer_id id = next_id();
-	Event e(id, when, period, std::move(handler));
-	if(events.size() <= id) {
-		events.resize(id + 1);
+	timer_id id = 0;
+	// Add a new event. Prefer an existing and free id. If none is available, add
+	// a new one.
+	if(free_ids.empty()) {
+		id = events.size();
+		Event e(id, when, period, std::move(handler));
+		events.push_back(std::move(e));
+	} else {
+		id = free_ids.top();
+		free_ids.pop();
+		Event e(id, when, period, std::move(handler));
+		events.insert(events.begin() + id, std::move(e));
 	}
-	events.insert(events.begin() + id, std::move(e));
-	time_events.push(Time_event{e.start, id});
+	time_events.push(Time_event{when, id});
 	cond.notify_all();
 	return id;
 }
