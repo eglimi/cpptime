@@ -105,7 +105,7 @@ struct Time_event {
 
 inline bool operator<(const Time_event &l, const Time_event &r)
 {
-	return l.next < r.next;
+	return r.next < l.next;
 }
 
 // The vector that holds all active events.
