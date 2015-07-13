@@ -135,3 +135,16 @@ TEST_CASE("Test two identical timeouts")
 	REQUIRE(j == 43);
 	CppTime::stop();
 }
+
+TEST_CASE("Test order of multiple timeouts")
+{
+	int i = 0;
+	CppTime::start();
+	CppTime::add(10000, [&](CppTime::timer_id) { i = 42; });
+	CppTime::add(20000, [&](CppTime::timer_id) { i = 43; });
+	CppTime::add(30000, [&](CppTime::timer_id) { i = 44; });
+	CppTime::add(40000, [&](CppTime::timer_id) { i = 45; });
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	REQUIRE(i == 45);
+	CppTime::stop();
+}
