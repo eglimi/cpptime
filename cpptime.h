@@ -96,7 +96,7 @@ namespace CppTime
 {
 
 // Public definitions
-using timer_id = uint64_t;
+using timer_id = std::size_t;
 using handler_t = std::function<void(timer_id)>;
 using clock = std::chrono::steady_clock;
 using timestamp = std::chrono::time_point<clock>;
