@@ -208,7 +208,7 @@ timer_id add(const timestamp &when, handler_t &&handler, const duration &period)
 		id = free_ids.top();
 		free_ids.pop();
 		Event e(id, when, period, std::move(handler));
-		events.insert(events.begin() + id, std::move(e));
+		events[id] = std::move(e);
 	}
 	time_events.push(Time_event{when, id});
 	cond.notify_all();
