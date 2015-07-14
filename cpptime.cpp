@@ -36,10 +36,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <algorithm>
+#include <vector>
 #include <stack>
 #include <set>
-#include <queue>
-#include <unordered_map>
 #include "cpptime.h"
 
 namespace
@@ -105,13 +104,13 @@ struct Time_event {
 
 inline bool operator<(const Time_event &l, const Time_event &r)
 {
-	return r.next < l.next;
+	return l.next < r.next;
 }
 
 // The vector that holds all active events.
 std::vector<Event> events;
 // Sorted queue that has the next timeout at its top.
-std::priority_queue<Time_event> time_events;
+std::multiset<Time_event> time_events;
 
 // A list of ids to be re-used. If possible, ids are used from this pool.
 std::stack<CppTime::timer_id> free_ids;
@@ -129,11 +128,11 @@ void run()
 			// Wait for work
 			cond.wait(lock);
 		} else {
-			auto te = time_events.top();
+			Time_event te = *time_events.begin();
 			if(CppTime::clock::now() >= te.next) {
 
 				// Remove time event
-				time_events.pop();
+				time_events.erase(time_events.begin());
 				Event &ev = events[te.ref];
 
 				if(!ev.valid) {
@@ -152,7 +151,7 @@ void run()
 					} else {
 						if(ev.period.count() > 0) {
 							te.next += ev.period;
-							time_events.push(te);
+							time_events.insert(te);
 						} else {
 							ev.valid = false;
 							free_ids.push(te.ref);
@@ -186,9 +185,7 @@ void stop()
 	scoped_m lock(m);
 	done = true;
 	events.clear();
-	while(!time_events.empty()) {
-		time_events.pop();
-	}
+	time_events.clear();
 	while(!free_ids.empty()) {
 		free_ids.pop();
 	}
@@ -213,7 +210,7 @@ timer_id add(const timestamp &when, handler_t &&handler, const duration &period)
 		Event e(id, when, period, std::move(handler));
 		events[id] = std::move(e);
 	}
-	time_events.push(Time_event{when, id});
+	time_events.insert(Time_event{when, id});
 	cond.notify_all();
 	return id;
 }
@@ -225,6 +222,13 @@ bool remove(timer_id id)
 		return false;
 	}
 	events[id].valid = false;
+	auto it = std::find_if(
+	    time_events.begin(), time_events.end(), [&](const Time_event &te) { return te.ref == id; });
+	if(it != time_events.end()) {
+		free_ids.push(it->ref);
+		time_events.erase(it);
+	}
+	cond.notify_all();
 	return true;
 }
 

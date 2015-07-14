@@ -61,21 +61,14 @@
  * Internally, a std::vector is used to store timeout events. The timer_id
  * returned from the `add` functions are used as index to this vector.
  *
- * In addition, a std::priority_queue is used that holds all point in time when
- * timeouts are fired.
+ * In addition, a std::multiset is used that holds all time points when
+ * timeouts expire.
  *
  * Using a vector to store timeout events has some implications. It is very
  * fast to remove an event, because the timer_id is the vector's index. On the
  * other hand, this makes it also more complicated to manage the timer_ids. The
  * current solution is to keep track of used ids and re-use them if a new timer
  * is added.
- *
- * Also, using a priority_queue means that removing an arbitrary item is not
- * (easily) possible. Therefore, when an event is removed, it is only marked
- * invalid. It will still wakeup the internal loop when the timer would fire.
- * Instead of invoking the callback, the event can then be deleted and the id
- * freed. This works well for short timeouts. But since the ids are only freed
- * after the event fires, this might be a problem for very long timeouts.
  *
  * Examples
  * --------
