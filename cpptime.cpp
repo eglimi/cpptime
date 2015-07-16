@@ -173,6 +173,10 @@ namespace CppTime
 void start(size_t expected)
 {
 	scoped_m lock(m);
+	if(worker.joinable()) {
+		// Already started
+		return;
+	}
 	done = false;
 	if(expected > 0) {
 		events.resize(expected);
@@ -183,6 +187,10 @@ void start(size_t expected)
 void stop()
 {
 	scoped_m lock(m);
+	if(!worker.joinable()) {
+		// Not started
+		return;
+	}
 	done = true;
 	events.clear();
 	time_events.clear();

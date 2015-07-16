@@ -49,6 +49,11 @@ TEST_CASE("Test start and stop.")
 	CppTime::stop();
 }
 
+TEST_CASE ("Stop a not running timer.")
+{
+	CppTime::stop();
+}
+
 TEST_CASE("Tests with two argument add")
 {
 	CppTime::start();
