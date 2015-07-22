@@ -27,8 +27,8 @@ While the current implementation serves us well, there are some features that
 might potentially be interesting for other use cases. Contact us in case you
 are interested.
 
-- [ ] Ability to have multiple timer components running.
-- [ ] Distribute it as a header only library.
+- [x] Ability to have multiple timer components running.
+- [x] Distribute it as a header only library.
 - [ ] Optionally avoid locking.
 - [ ] API to use client thread instead of creating its own.
 - [ ] API to use client mutex instead of its own.
