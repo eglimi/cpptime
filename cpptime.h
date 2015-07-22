@@ -132,24 +132,8 @@ struct Event {
 	    : id(id), start(start), period(period), handler(std::forward<Func>(handler)), valid(true)
 	{
 	}
-	Event(Event &&r) noexcept : id(r.id),
-	                            start(r.start),
-	                            period(r.period),
-	                            handler(std::move(r.handler)),
-	                            valid(r.valid)
-	{
-	}
-	Event &operator=(Event &&ev) noexcept
-	{
-		if(this != &ev) {
-			id = ev.id;
-			start = ev.start;
-			period = ev.period;
-			handler = std::move(ev.handler);
-			valid = ev.valid;
-		}
-		return *this;
-	}
+	Event(Event &&r) = default;
+	Event &operator=(Event &&ev) = default;
 	Event(const Event &r) = delete;
 	Event &operator=(const Event &r) = delete;
 };
