@@ -1,7 +1,7 @@
 C++ Timeouts
 ============
 
-A portable, pure C++11 timer component.
+A portable, header-only C++11 timer component.
 
 It manages a set of timeouts that, when expired, invoke a callback. It uses
 features of C++11 in order to avoid platform specific code.
@@ -57,6 +57,20 @@ CppTime::remove(id);
 
 - The implementation is small and easy to understand. It is not difficult to
 change to make it better suitable for specific cases.
+
+Usage
+-----
+
+Simply copy [cpptime.h](./cpptime.h) into you project and your done.
+
+Tests can be compiled and executed with the following commands, assuming you
+are on a POSIX machine.
+
+~~~
+cd tests
+clang++-3.6  -std=c++11 -Wall -Wextra -o tests timer_test.cpp -l pthread
+./tests
+~~~
 
 Contributions
 -------------
