@@ -33,7 +33,7 @@
  * C++11 timer component
  * =====================
  *
- * A portable, pure C++11 timer component.
+ * A portable, header-only C++11 timer component.
  *
  * Overview
  * --------
@@ -42,8 +42,10 @@
  * pure C++11. It is therefore very portable given a compliant compiler.
  *
  * A timeout can be added with one of the `add` functions, and removed with the
- * `remove` function. A timeout can be either one-shot, or periodic. In case a
- * timeout is one-shot, the callback is invoked and the timeout event removed.
+ * `remove` function. A timeout can be either one-shot or periodic. In case a
+ * timeout is one-shot, the callback is invoked once and the timeout event is
+ * then automatically removed. If the timer is periodic, it is never
+ * automatically removed, but always renewed.
  *
  * Removing a timeout is possible even from within the callback.
  *
@@ -52,8 +54,15 @@
  *
  * The preferred functions for adding timeouts are those that take a
  * `std::chrono::...` argument. However, for convenience, there is also an API
- * that takes a uint64_t. There, all values are expected to be given in
- * microseconds (us).
+ * that takes a uint64_t. When using this API, all values are expected to be
+ * given in microseconds (us).
+ *
+ * For periodic timeouts, a separate timeout can be specified for the initial
+ * (first) timeout, and the periodicity after that.
+ *
+ * To avoid drifts, times are added by simply adding the period to the intially
+ * calculated (or provided) time. Also, we use `wait until` type of API to wait
+ * for a timeout instead of a `wait for` API.
  *
  * Data Structure
  * --------------
@@ -67,8 +76,8 @@
  * Using a vector to store timeout events has some implications. It is very
  * fast to remove an event, because the timer_id is the vector's index. On the
  * other hand, this makes it also more complicated to manage the timer_ids. The
- * current solution is to keep track of used ids and re-use them if a new timer
- * is added.
+ * current solution is to keep track of ids that are freed in order to re-use
+ * them. A stack is used for this.
  *
  * Examples
  * --------
@@ -81,6 +90,8 @@
  * std::this_thread::sleep_for(std::chrono::seconds(2));
  * ~~~
  */
+
+// Includes
 #include <functional>
 #include <thread>
 #include <mutex>
@@ -94,13 +105,14 @@
 namespace CppTime
 {
 
-// Public definitions
+// Public types
 using timer_id = std::size_t;
 using handler_t = std::function<void(timer_id)>;
 using clock = std::chrono::steady_clock;
 using timestamp = std::chrono::time_point<clock>;
 using duration = std::chrono::microseconds;
 
+// Private definitions. Do not rely on this namespace.
 namespace detail
 {
 
@@ -160,6 +172,7 @@ class Timer
 {
 	using scoped_m = std::unique_lock<std::mutex>;
 
+	// Thread and locking variables.
 	std::mutex m;
 	std::condition_variable cond;
 	std::thread worker;
