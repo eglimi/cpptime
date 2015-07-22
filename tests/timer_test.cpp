@@ -43,6 +43,8 @@
 #include "catch.hpp"
 #include "../cpptime.h"
 
+using namespace std::chrono;
+
 TEST_CASE("Test start and stop.")
 {
 	{
@@ -58,24 +60,23 @@ TEST_CASE("Tests with two argument add")
 	{
 		int i = 0;
 		t.add(100000, [&](CppTime::timer_id) { i = 42; });
-		std::this_thread::sleep_for(std::chrono::milliseconds(120));
+		std::this_thread::sleep_for(milliseconds(120));
 		REQUIRE(i == 42);
 	}
 
 	SECTION("Test duration timeout argument")
 	{
 		int i = 0;
-		t.add(std::chrono::milliseconds(100), [&](CppTime::timer_id) { i = 43; });
-		std::this_thread::sleep_for(std::chrono::milliseconds(120));
+		t.add(milliseconds(100), [&](CppTime::timer_id) { i = 43; });
+		std::this_thread::sleep_for(milliseconds(120));
 		REQUIRE(i == 43);
 	}
 
 	SECTION("Test time_point timeout argument")
 	{
 		int i = 0;
-		t.add(CppTime::clock::now() + std::chrono::milliseconds(100),
-		    [&](CppTime::timer_id) { i = 44; });
-		std::this_thread::sleep_for(std::chrono::milliseconds(120));
+		t.add(CppTime::clock::now() + milliseconds(100), [&](CppTime::timer_id) { i = 44; });
+		std::this_thread::sleep_for(milliseconds(120));
 		REQUIRE(i == 44);
 	}
 }
@@ -88,7 +89,7 @@ TEST_CASE("Tests with three argument add")
 	{
 		size_t count = 0;
 		auto id = t.add(100000, [&](CppTime::timer_id) { ++count; }, 10000);
-		std::this_thread::sleep_for(std::chrono::milliseconds(125));
+		std::this_thread::sleep_for(milliseconds(125));
 		t.remove(id);
 		REQUIRE(count == 3);
 	}
@@ -96,9 +97,9 @@ TEST_CASE("Tests with three argument add")
 	SECTION("Test duration timeout argument")
 	{
 		size_t count = 0;
-		auto id = t.add(std::chrono::milliseconds(100), [&](CppTime::timer_id) { ++count; },
-		    std::chrono::microseconds(10000));
-		std::this_thread::sleep_for(std::chrono::milliseconds(135));
+		auto id =
+		    t.add(milliseconds(100), [&](CppTime::timer_id) { ++count; }, microseconds(10000));
+		std::this_thread::sleep_for(milliseconds(135));
 		t.remove(id);
 		REQUIRE(count == 4);
 	}
@@ -109,11 +110,11 @@ TEST_CASE("Test delete timer in callback")
 	CppTime::Timer t;
 
 	size_t count = 0;
-	auto id = t.add(std::chrono::milliseconds(10), [&](CppTime::timer_id id) {
+	auto id = t.add(milliseconds(10), [&](CppTime::timer_id id) {
 		++count;
 		t.remove(id);
-	}, std::chrono::milliseconds(10));
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}, milliseconds(10));
+	std::this_thread::sleep_for(milliseconds(50));
 	REQUIRE(count == 1);
 }
 
@@ -122,10 +123,10 @@ TEST_CASE("Test two identical timeouts")
 	int i = 0;
 	int j = 0;
 	CppTime::Timer t;
-	CppTime::timestamp ts = CppTime::clock::now() + std::chrono::milliseconds(40);
+	CppTime::timestamp ts = CppTime::clock::now() + milliseconds(40);
 	t.add(ts, [&](CppTime::timer_id) { i = 42; });
 	t.add(ts, [&](CppTime::timer_id) { j = 43; });
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	std::this_thread::sleep_for(milliseconds(50));
 	REQUIRE(i == 42);
 	REQUIRE(j == 43);
 }
@@ -138,6 +139,35 @@ TEST_CASE("Test order of multiple timeouts")
 	t.add(20000, [&](CppTime::timer_id) { i = 43; });
 	t.add(30000, [&](CppTime::timer_id) { i = 44; });
 	t.add(40000, [&](CppTime::timer_id) { i = 45; });
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	std::this_thread::sleep_for(milliseconds(50));
 	REQUIRE(i == 45);
+}
+
+TEST_CASE("Test with multiple timers")
+{
+	int i = 0;
+	CppTime::Timer t1;
+	CppTime::Timer t2;
+
+	SECTION("Update the same value at different times with different timers")
+	{
+		t1.add(milliseconds(20), [&](CppTime::timer_id) { i = 42; });
+		t1.add(milliseconds(40), [&](CppTime::timer_id) { i = 43; });
+		std::this_thread::sleep_for(milliseconds(30));
+		REQUIRE(i == 42);
+		std::this_thread::sleep_for(milliseconds(20));
+		REQUIRE(i == 43);
+	}
+
+	SECTION("Remove one timer without affecting the other")
+	{
+		auto id1 = t1.add(milliseconds(20), [&](CppTime::timer_id) { i = 42; });
+		t1.add(milliseconds(40), [&](CppTime::timer_id) { i = 43; });
+		std::this_thread::sleep_for(milliseconds(10));
+		t1.remove(id1);
+		std::this_thread::sleep_for(milliseconds(20));
+		REQUIRE(i == 0);
+		std::this_thread::sleep_for(milliseconds(20));
+		REQUIRE(i == 43);
+	}
 }
