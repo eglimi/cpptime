@@ -160,6 +160,35 @@ TEST_CASE("Test two identical timeouts")
 	REQUIRE(j == 43);
 }
 
+TEST_CASE("Test timeouts from the past.")
+{
+	CppTime::Timer t;
+
+	SECTION("Test negative timeouts")
+	{
+		int i = 0;
+		int j = 0;
+		CppTime::timestamp ts1 = CppTime::clock::now() - milliseconds(10);
+		CppTime::timestamp ts2 = CppTime::clock::now() - milliseconds(20);
+		t.add(ts1, [&](CppTime::timer_id) { i = 42; });
+		t.add(ts2, [&](CppTime::timer_id) { j = 43; });
+		std::this_thread::sleep_for(microseconds(10));
+		REQUIRE(i == 42);
+		REQUIRE(j == 43);
+	}
+
+	SECTION("Test time overflow when blocking timer thread.")
+	{
+		int i = 0;
+		CppTime::timestamp ts1 = CppTime::clock::now() + milliseconds(10);
+		CppTime::timestamp ts2 = CppTime::clock::now() + milliseconds(20);
+		t.add(ts1, [&](CppTime::timer_id) { std::this_thread::sleep_for(milliseconds(20)); });
+		t.add(ts2, [&](CppTime::timer_id) { i = 42; });
+		std::this_thread::sleep_for(milliseconds(50));
+		REQUIRE(i == 42);
+	}
+}
+
 TEST_CASE("Test order of multiple timeouts")
 {
 	int i = 0;
