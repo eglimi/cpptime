@@ -284,27 +284,21 @@ private:
 					time_events.erase(time_events.begin());
 					detail::Event &ev = events[te.ref];
 
+					// Invoke the handler
+					lock.unlock();
+					ev.handler(te.ref);
+					lock.lock();
+
 					if(!ev.valid) {
-						// Return the id if the event is no longer valid.
+						// The callback removed the event.
 						free_ids.push(te.ref);
 					} else {
-
-						// Invoke the handler
-						lock.unlock();
-						ev.handler(te.ref);
-						lock.lock();
-
-						if(!ev.valid) {
-							// The callback removed the event.
-							free_ids.push(te.ref);
+						if(ev.period.count() > 0) {
+							te.next += ev.period;
+							time_events.insert(te);
 						} else {
-							if(ev.period.count() > 0) {
-								te.next += ev.period;
-								time_events.insert(te);
-							} else {
-								ev.valid = false;
-								free_ids.push(te.ref);
-							}
+							ev.valid = false;
+							free_ids.push(te.ref);
 						}
 					}
 				} else {
