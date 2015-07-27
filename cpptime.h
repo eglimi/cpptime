@@ -189,8 +189,8 @@ public:
 		while(!free_ids.empty()) {
 			free_ids.pop();
 		}
-		cond.notify_all();
 		lock.unlock();
+		cond.notify_all();
 		worker.join();
 	}
 
@@ -219,6 +219,7 @@ public:
 			events[id] = std::move(e);
 		}
 		time_events.insert(detail::Time_event{when, id});
+		lock.unlock();
 		cond.notify_all();
 		return id;
 	}
@@ -260,6 +261,7 @@ public:
 			free_ids.push(it->ref);
 			time_events.erase(it);
 		}
+		lock.unlock();
 		cond.notify_all();
 		return true;
 	}
