@@ -289,17 +289,15 @@ private:
 					ev.handler(te.ref);
 					lock.lock();
 
-					if(!ev.valid) {
-						// The callback removed the event.
-						free_ids.push(te.ref);
+					if(ev.valid && ev.period.count() > 0) {
+						// The event is valid and a periodic timer.
+						te.next += ev.period;
+						time_events.insert(te);
 					} else {
-						if(ev.period.count() > 0) {
-							te.next += ev.period;
-							time_events.insert(te);
-						} else {
-							ev.valid = false;
-							free_ids.push(te.ref);
-						}
+						// The event is either no longer valid because it was removed in the
+						// callback, or it is a one-shot timer.
+						ev.valid = false;
+						free_ids.push(te.ref);
 					}
 				} else {
 					cond.wait_until(lock, te.next);
