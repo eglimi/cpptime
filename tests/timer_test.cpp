@@ -109,13 +109,42 @@ TEST_CASE("Test delete timer in callback")
 {
 	CppTime::Timer t;
 
-	size_t count = 0;
-	auto id = t.add(milliseconds(10), [&](CppTime::timer_id id) {
-		++count;
-		t.remove(id);
-	}, milliseconds(10));
-	std::this_thread::sleep_for(milliseconds(50));
-	REQUIRE(count == 1);
+	SECTION("Delete one timer")
+	{
+		size_t count = 0;
+		auto id = t.add(milliseconds(10), [&](CppTime::timer_id id) {
+			++count;
+			t.remove(id);
+		}, milliseconds(10));
+		std::this_thread::sleep_for(milliseconds(50));
+		REQUIRE(count == 1);
+	}
+
+	SECTION("Ensure that the correct timer is freed and reused")
+	{
+		auto id1 = t.add(milliseconds(40), [](CppTime::timer_id) {});
+		auto id2 = t.add(milliseconds(10), [&](CppTime::timer_id id) { t.remove(id); });
+		std::this_thread::sleep_for(milliseconds(30));
+		auto id3 = t.add(microseconds(100), [](CppTime::timer_id) {});
+		auto id4 = t.add(microseconds(100), [](CppTime::timer_id) {});
+		REQUIRE(id3 == id2);
+		REQUIRE(id4 != id1);
+		REQUIRE(id4 != id2);
+		std::this_thread::sleep_for(milliseconds(20));
+	}
+
+	SECTION("Ensure that the correct timer is freed and reused - different ordering")
+	{
+		auto id1 = t.add(milliseconds(10), [&](CppTime::timer_id id) { t.remove(id); });
+		auto id2 = t.add(milliseconds(40), [](CppTime::timer_id) {});
+		std::this_thread::sleep_for(milliseconds(30));
+		auto id3 = t.add(microseconds(100), [](CppTime::timer_id) {});
+		auto id4 = t.add(microseconds(100), [](CppTime::timer_id) {});
+		REQUIRE(id3 == id1);
+		REQUIRE(id4 != id1);
+		REQUIRE(id4 != id2);
+		std::this_thread::sleep_for(milliseconds(20));
+	}
 }
 
 TEST_CASE("Test two identical timeouts")
