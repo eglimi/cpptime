@@ -282,21 +282,20 @@ private:
 
 					// Remove time event
 					time_events.erase(time_events.begin());
-					detail::Event &ev = events[te.ref];
 
 					// Invoke the handler
 					lock.unlock();
-					ev.handler(te.ref);
+					events[te.ref].handler(te.ref);
 					lock.lock();
 
-					if(ev.valid && ev.period.count() > 0) {
+					if(events[te.ref].valid && events[te.ref].period.count() > 0) {
 						// The event is valid and a periodic timer.
-						te.next += ev.period;
+						te.next += events[te.ref].period;
 						time_events.insert(te);
 					} else {
 						// The event is either no longer valid because it was removed in the
 						// callback, or it is a one-shot timer.
-						ev.valid = false;
+						events[te.ref].valid = false;
 						free_ids.push(te.ref);
 					}
 				} else {
