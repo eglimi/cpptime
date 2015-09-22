@@ -184,14 +184,14 @@ public:
 	{
 		scoped_m lock(m);
 		done = true;
+		lock.unlock();
+		cond.notify_all();
+		worker.join();
 		events.clear();
 		time_events.clear();
 		while(!free_ids.empty()) {
 			free_ids.pop();
 		}
-		lock.unlock();
-		cond.notify_all();
-		worker.join();
 	}
 
 	/**
