@@ -93,7 +93,7 @@ are on a POSIX machine.
 ~~~
 cd tests
 g++ -g -std=c++11 -Wall -Wextra -o run_tests timer_test.cpp -l pthread
-./tests
+./run_tests
 ~~~
 
 Contributions
