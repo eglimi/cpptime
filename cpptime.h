@@ -177,7 +177,7 @@ public:
 	{
 		scoped_m lock(m);
 		done = false;
-		worker = std::thread(std::bind(&Timer::run, this));
+		worker = std::thread([this]{ run(); });
 	}
 
 	~Timer()
