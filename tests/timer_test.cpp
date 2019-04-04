@@ -30,7 +30,7 @@
  * Tests for cpptime component. Compile with
  *
  * ~~~
- * g++ -g -std=c++11 -Wall -Wextra -o tests ../cpptime.cpp timer_test.cpp -l pthread
+ * g++ -g -std=c++11 -Wall -Wextra -o run_tests timer_test.cpp -l pthread
  * ~~~
  *
  */
