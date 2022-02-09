@@ -251,7 +251,7 @@ public:
 	bool remove(timer_id id)
 	{
 		scoped_m lock(m);
-		if(events.size() == 0 || events.size() < id) {
+		if(events.size() == 0 || events.size() <= id) {
 			return false;
 		}
 		events[id].valid = false;
