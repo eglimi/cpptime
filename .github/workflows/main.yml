@@ -1,0 +1,17 @@
+name: cpptime CI
+
+on: push
+
+jobs:
+  unit_test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Compile and run tests
+        run: |
+          g++ -std=c++11 -Wall -Wextra -o test tests/timer_test.cpp -l pthread
+          ./test
