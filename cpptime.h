@@ -60,7 +60,7 @@
  * For periodic timeouts, a separate timeout can be specified for the initial
  * (first) timeout, and the periodicity after that.
  *
- * To avoid drifts, times are added by simply adding the period to the intially
+ * To avoid drifts, times are added by simply adding the period to the initially
  * calculated (or provided) time. Also, we use `wait until` type of API to wait
  * for a timeout instead of a `wait for` API.
  *

@@ -229,3 +229,16 @@ TEST_CASE("Test with multiple timers")
 		REQUIRE(i == 43);
 	}
 }
+
+TEST_CASE("Test remove timer_id")
+{
+	CppTime::Timer t;
+
+	SECTION("Remove out of range timer_id")
+	{
+		auto id = t.add(milliseconds(20), [](CppTime::timer_id){});
+		std::this_thread::sleep_for(microseconds(10));
+		auto res = t.remove(id+1);
+		REQUIRE(res == false);
+	}
+}
