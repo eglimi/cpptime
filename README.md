@@ -91,9 +91,8 @@ Tests can be compiled and executed with the following commands, assuming you
 are on a POSIX machine.
 
 ~~~
-cd tests
-g++ -g -std=c++11 -Wall -Wextra -o run_tests timer_test.cpp -l pthread
-./run_tests
+g++ -std=c++11 -Wall -Wextra -o test tests/timer_test.cpp -l pthread
+./test
 ~~~
 
 Contributions

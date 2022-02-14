@@ -30,7 +30,7 @@
  * Tests for cpptime component. Compile with
  *
  * ~~~
- * g++ -g -std=c++11 -Wall -Wextra -o run_tests timer_test.cpp -l pthread
+ * g++ -std=c++11 -Wall -Wextra -o test timer_test.cpp -l pthread
  * ~~~
  *
  */
@@ -112,7 +112,7 @@ TEST_CASE("Test delete timer in callback")
 	SECTION("Delete one timer")
 	{
 		size_t count = 0;
-		auto id = t.add(milliseconds(10), [&](CppTime::timer_id id) {
+		t.add(milliseconds(10), [&](CppTime::timer_id id) {
 			++count;
 			t.remove(id);
 		}, milliseconds(10));
@@ -172,7 +172,7 @@ TEST_CASE("Test timeouts from the past.")
 		CppTime::timestamp ts2 = CppTime::clock::now() - milliseconds(20);
 		t.add(ts1, [&](CppTime::timer_id) { i = 42; });
 		t.add(ts2, [&](CppTime::timer_id) { j = 43; });
-		std::this_thread::sleep_for(microseconds(10));
+		std::this_thread::sleep_for(microseconds(20));
 		REQUIRE(i == 42);
 		REQUIRE(j == 43);
 	}
