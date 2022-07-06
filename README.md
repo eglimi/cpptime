@@ -1,5 +1,4 @@
-C++ Timeouts
-============
+# C++ Timeouts
 
 A portable, header-only C++11 timer component.
 
@@ -8,60 +7,43 @@ features of C++11 in order to avoid platform specific code.
 
 It supports one-shot and periodic timeouts.
 
-Documentation
--------------
+## Documentation
 
-Please see the documentation in [cpptime.h](./cpptime.h) for more detailed information about
-the implementation.
+Please see the documentation in [cpptime.h](./cpptime.h) for more detailed
+information about the implementation.
 
-Implementation Status
----------------------
+## Implementation Status
 
-This is a new component and not much testing has been done. We already use it
-in some of our products but expect that it receives some updates over time.
+We use this timer implementation in some of our products without issues.
+Judging from the Github stars and forks, it seems to be used in other projects
+as well. Since it was implemented in 2015 and has not seen many issue reports,
+we assume it is quite stable.
 
-Possible Features
-----------------
+But note that this is not a guarantee and if you find any issues, please report
+them.
 
-While the current implementation serves us well, there are some features that
-might potentially be interesting for other use cases. Contact us in case you
-are interested.
-
-- [x] Ability to have multiple timer components running.
-- [x] Distribute it as a header only library.
-- [ ] Optionally avoid locking.
-- [ ] API to use client thread instead of creating its own.
-- [ ] API to use client mutex instead of its own.
-
-Use Cases and Limitations
--------------------------
+## Use Cases and Limitations
 
 Naturally the implementation makes some trade-offs. This makes it useful for
 some cases, and less so for others.
 
-- The timer runs completely in user space. This makes it slightly less efficient
-than other solutions, such as `timer_create()` or `timerfd_create()`. However,
-in many cases, this overhead is acceptable.
+- The timer runs completely in user space. This makes it slightly less
+  efficient than other solutions, such as `timer_create()` or
+  `timerfd_create()`. However, in many cases, this overhead is acceptable.
 
 - Given a C++11 capable compiler, the code is portable.
 
-- The API to add or remove a timeout is arguably nicer than the platform specific
-alternatives. E.g.
+- The API to add or remove a timeout is arguably nicer than the platform
+  specific alternatives. E.g.
 
-~~~
+```cpp
 timer.add(seconds(2), [](CppTime::timer_id) { ... });
-~~~
+```
 
-- Please note: the callback function's state (e.g., lambda function captured
-variables) are not accessible after calling timer.remove(), including if it's
-removed from inside the callback function itself. This is because the timer
-event has been removed, and has become invalid
+- The implementation is small and easy to understand. You can change or extend
+  it to make it better suitable for your use-cases.
 
-- The implementation is small and easy to understand. It is not difficult to
-change to make it better suitable for specific cases.
-
-Examples
---------
+## Examples
 
 A one shot timer.
 
@@ -73,7 +55,9 @@ std::this_thread::sleep_for(seconds(3));
 ~~~
 
 A periodic timer that is first executed after 2 seconds, and after this every
-second. The event is removed after 10 seconds.
+second. The timeout event is then removed after 10 seconds. When a timeout
+event is removed, is attached handler is also freed to clean-up an attached
+resources.
 
 ~~~
 using namespace std::chrono;
@@ -85,9 +69,7 @@ t.remove(id);
 
 See the tests for more examples.
 
-
-Usage
------
+## Usage
 
 To use the timer component, Simply copy [cpptime.h](./cpptime.h) into you
 project. Everything is contained in this single header file.
@@ -100,8 +82,20 @@ g++ -std=c++11 -Wall -Wextra -o test tests/timer_test.cpp -l pthread
 ./test
 ~~~
 
-Contributions
--------------
+## Possible Features
+
+While the current implementation serves us well, there are some features that
+might potentially be interesting for other use cases. Contact us in case you
+are interested.
+
+- [x] Ability to have multiple timer components running.
+- [x] Distribute it as a header only library.
+- [ ] Optionally avoid locking.
+- [ ] API to use client thread instead of creating its own.
+- [ ] API to use client mutex instead of its own.
+
+
+##Contributions
 
 Contributions, suggestions, and feature requests are welcome. Please use the
 Github issue tracker.

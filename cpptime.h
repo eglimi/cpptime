@@ -41,13 +41,18 @@
  * This component can be used to manage a set of timeouts. It is implemented in
  * pure C++11. It is therefore very portable given a compliant compiler.
  *
- * A timeout can be added with one of the `add` functions, and removed with the
- * `remove` function. A timeout can be either one-shot or periodic. In case a
- * timeout is one-shot, the callback is invoked once and the timeout event is
- * then automatically removed. If the timer is periodic, it is never
- * automatically removed, but always renewed.
+ * A timeout can be added with one of the `add()` functions, and removed with
+ * the `remove()` function. A timeout can be set to be either one-shot or
+ * periodic. If it is one-shot, the callback is invoked once and the timeout
+ * event is then automatically removed. If the timeout is periodic, it is
+ * always renewed and never automatically removed.
  *
- * Removing a timeout is possible even from within the callback.
+ * When a timeout is removed or when a one-shot timeout expires, the handler
+ * will be deleted to clean-up any resources.
+ *
+ * Removing a timeout is possible from within the callback. In this case, you
+ * must be careful not to access any captured variables, if any, after calling
+ * `remove()`, because they are no longer valid.
  *
  * Timeout Units
  * -------------
@@ -92,15 +97,15 @@
  */
 
 // Includes
-#include <functional>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <chrono>
 #include <algorithm>
-#include <vector>
-#include <stack>
+#include <chrono>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 #include <set>
+#include <stack>
+#include <thread>
+#include <vector>
 
 namespace CppTime
 {
@@ -177,7 +182,7 @@ public:
 	{
 		scoped_m lock(m);
 		done = false;
-		worker = std::thread([this]{ run(); });
+		worker = std::thread([this] { run(); });
 	}
 
 	~Timer()
