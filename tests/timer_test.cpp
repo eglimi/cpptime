@@ -38,10 +38,10 @@
 #define CATCH_CONFIG_MAIN
 
 // Includes
-#include <thread>
-#include <chrono>
-#include "catch.hpp"
 #include "../cpptime.h"
+#include "catch.hpp"
+#include <chrono>
+#include <thread>
 
 using namespace std::chrono;
 
@@ -88,7 +88,8 @@ TEST_CASE("Tests with three argument add")
 	SECTION("Test uint64_t timeout argument")
 	{
 		size_t count = 0;
-		auto id = t.add(100000, [&](CppTime::timer_id) { ++count; }, 10000);
+		auto id = t.add(
+		    100000, [&](CppTime::timer_id) { ++count; }, 10000);
 		std::this_thread::sleep_for(milliseconds(125));
 		t.remove(id);
 		REQUIRE(count == 3);
@@ -97,8 +98,8 @@ TEST_CASE("Tests with three argument add")
 	SECTION("Test duration timeout argument")
 	{
 		size_t count = 0;
-		auto id =
-		    t.add(milliseconds(100), [&](CppTime::timer_id) { ++count; }, microseconds(10000));
+		auto id = t.add(
+		    milliseconds(100), [&](CppTime::timer_id) { ++count; }, microseconds(10000));
 		std::this_thread::sleep_for(milliseconds(135));
 		t.remove(id);
 		REQUIRE(count == 4);
@@ -112,10 +113,13 @@ TEST_CASE("Test delete timer in callback")
 	SECTION("Delete one timer")
 	{
 		size_t count = 0;
-		t.add(milliseconds(10), [&](CppTime::timer_id id) {
-			++count;
-			t.remove(id);
-		}, milliseconds(10));
+		t.add(
+		    milliseconds(10),
+		    [&](CppTime::timer_id id) {
+			    ++count;
+			    t.remove(id);
+		    },
+		    milliseconds(10));
 		std::this_thread::sleep_for(milliseconds(50));
 		REQUIRE(count == 1);
 	}
@@ -236,9 +240,31 @@ TEST_CASE("Test remove timer_id")
 
 	SECTION("Remove out of range timer_id")
 	{
-		auto id = t.add(milliseconds(20), [](CppTime::timer_id){});
+		auto id = t.add(milliseconds(20), [](CppTime::timer_id) {});
 		std::this_thread::sleep_for(microseconds(10));
-		auto res = t.remove(id+1);
+		auto res = t.remove(id + 1);
 		REQUIRE(res == false);
+	}
+
+	SECTION("Remove timer_id and ensure handler is freed when calling remove")
+	{
+		auto shared = std::make_shared<int>(10);
+		CppTime::handler_t func = [=](CppTime::timer_id) { auto shared2 = shared; };
+		auto id = t.add(milliseconds(20), std::move(func));
+		REQUIRE(shared.use_count() == 2); // shared is copied
+		std::this_thread::sleep_for(microseconds(10));
+		auto res = t.remove(id);
+		REQUIRE(res == true);
+		REQUIRE(shared.use_count() == 1); // shared in the lambda is cleaned.
+	}
+
+	SECTION("Remove timer_id and ensure handler is freed for one-shot timeouts")
+	{
+		auto shared = std::make_shared<int>(10);
+		CppTime::handler_t func = [=](CppTime::timer_id) { auto shared2 = shared; };
+		t.add(milliseconds(20), std::move(func));
+		REQUIRE(shared.use_count() == 2); // shared is copied
+		std::this_thread::sleep_for(milliseconds(30));
+		REQUIRE(shared.use_count() == 1); // shared in the lambda is cleaned.
 	}
 }
