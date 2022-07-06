@@ -255,6 +255,7 @@ public:
 			return false;
 		}
 		events[id].valid = false;
+		events[id].handler = nullptr;
 		auto it = std::find_if(time_events.begin(), time_events.end(),
 		    [&](const detail::Time_event &te) { return te.ref == id; });
 		if(it != time_events.end()) {
@@ -296,6 +297,7 @@ private:
 						// The event is either no longer valid because it was removed in the
 						// callback, or it is a one-shot timer.
 						events[te.ref].valid = false;
+						events[te.ref].handler = nullptr;
 						free_ids.push(te.ref);
 					}
 				} else {
