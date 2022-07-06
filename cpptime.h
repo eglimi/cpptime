@@ -11,7 +11,7 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * furnished to do so, subject to the following conditionsE
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -254,7 +254,8 @@ public:
 		if(events.size() == 0 || events.size() <= id) {
 			return false;
 		}
-		events[id] = detail::Event();
+		events[id].valid = false;
+		events[id].handler = nullptr;
 		auto it = std::find_if(time_events.begin(), time_events.end(),
 		    [&](const detail::Time_event &te) { return te.ref == id; });
 		if(it != time_events.end()) {
@@ -296,6 +297,7 @@ private:
 						// The event is either no longer valid because it was removed in the
 						// callback, or it is a one-shot timer.
 						events[te.ref].valid = false;
+						events[te.ref].handler = nullptr;
 						free_ids.push(te.ref);
 					}
 				} else {
