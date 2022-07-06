@@ -52,6 +52,11 @@ alternatives. E.g.
 timer.add(seconds(2), [](CppTime::timer_id) { ... });
 ~~~
 
+- Please note: the callback function's state (e.g., lambda function captured
+variables) are not accessible after calling timer.remove(), including if it's
+removed from inside the callback function itself. This is because the timer
+event has been removed, and has become invalid
+
 - The implementation is small and easy to understand. It is not difficult to
 change to make it better suitable for specific cases.
 
