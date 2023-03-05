@@ -268,3 +268,22 @@ TEST_CASE("Test remove timer_id")
 		REQUIRE(shared.use_count() == 1); // shared in the lambda is cleaned.
 	}
 }
+
+TEST_CASE("Pass an argument to an action")
+{
+	struct PushMe {
+		int i{0};
+	};
+	auto push_me = std::make_shared<PushMe>();
+	push_me->i = 41;
+
+	CppTime::Timer t;
+	int res = 0;
+
+	// Share the shared_ptr with the lambda
+	t.add(milliseconds(20), [&res, push_me](CppTime::timer_id) { res = push_me->i + 1; });
+
+	REQUIRE(res == 0);
+	std::this_thread::sleep_for(milliseconds(30));
+	REQUIRE(res == 42);
+}
