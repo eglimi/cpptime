@@ -15,7 +15,7 @@ information about the implementation.
 ## Implementation Status
 
 We use this timer implementation in some of our products without issues.
-Judging from the Github stars and forks, it seems to be used in other projects
+Judging from the GitHub stars and forks, it seems to be used in other projects
 as well. Since it was implemented in 2015 and has not seen many issue reports,
 we assume it is quite stable.
 
@@ -56,7 +56,7 @@ std::this_thread::sleep_for(seconds(3));
 
 A periodic timer that is first executed after 2 seconds, and after this every
 second. The timeout event is then removed after 10 seconds. When a timeout
-event is removed, is attached handler is also freed to clean-up an attached
+event is removed, its attached handler is also freed to clean-up any attached
 resources.
 
 ~~~
@@ -94,8 +94,13 @@ are interested.
 - [ ] API to use client thread instead of creating its own.
 - [ ] API to use client mutex instead of its own.
 
+## Known issues
 
-##Contributions
+GCC up to version 10 (e.g. used in Ubuntu 20.04 LTS) has [an issue][gcc-clock] where `conditional_variable` doesn't use the monotonic clock. This leads to unreliable programs when the system clock is moved backwards. See #5 for more details. The fix is to update to a GCC version with the fix applied, e.g. version 10 or greater.
+
+[gcc-clock]: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41861
+
+## Contributions
 
 Contributions, suggestions, and feature requests are welcome. Please use the
-Github issue tracker.
+GitHub issue tracker.
